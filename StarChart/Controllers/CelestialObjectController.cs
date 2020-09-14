@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using StarChart.Data;
+using StarChart.Models;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -29,10 +30,92 @@ namespace StarChart.Controllers
         }
 
         // GET api/<CelestialObjectController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("{id:int}")]
+        [Route("GetById")]
+        public IActionResult GetById(int id)
         {
-            return "value";
+
+            var result = _context.CelestialObjects.Where(x => x.Id == id).FirstOrDefault();
+
+            
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+            else 
+            {
+                foreach (var sat in _context.CelestialObjects)
+                {
+                    if (sat.OrbitedObjectId == result.Id)
+                    {
+                        result.Satellites = new List<CelestialObject> { sat};
+                    }
+
+                }
+            }
+
+            return Ok(result);
+        }
+
+        [HttpGet("{name}")]     
+        [Route("name")]
+        public IActionResult GetByName(string name)     
+        {
+
+            var result =  _context.CelestialObjects.Where(x => x.Name == name) as IEnumerable<CelestialObject>;
+
+
+            foreach (var sat in _context.CelestialObjects)
+            {
+
+                foreach (var res in result)
+                {
+                    if (sat.OrbitedObjectId == res.Id)
+                    {
+                        res.Satellites = new List<CelestialObject> { sat };
+                    }
+                }
+            }
+
+
+            if (result.Count()==0 ||result == null)
+            {
+                return NotFound();
+            }
+            
+
+            return Ok(result);
+        }
+
+
+        [HttpGet]
+        [Route("GetAll")]
+        public IActionResult GetAll()
+        {
+
+            var result = _context.CelestialObjects;
+
+           
+                foreach (var sat in _context.CelestialObjects)
+                {
+
+                    foreach (var res in result )
+                    {
+                        if (sat.OrbitedObjectId == res.Id)
+                        {
+                            res.Satellites = new List<CelestialObject> { sat };
+                        }
+                    }
+                }
+
+                if (result.Count() == 0 || result == null)
+                {
+                    return NotFound();
+                }
+         
+
+            return Ok(result);
         }
 
         // POST api/<CelestialObjectController>
